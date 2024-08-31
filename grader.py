@@ -17,8 +17,11 @@ def execute_system_call(command):
     """
     Execute a system call and return the output
     """
-    result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
-    return result.stdout
+    try:
+        result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
+        return result.stdout
+    except subprocess.CalledProcessError:
+        return "FAIL"
 
 def find_emails(text):
     """
