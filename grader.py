@@ -21,6 +21,7 @@ def execute_system_call(command):
         result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
         return result.stdout
     except subprocess.CalledProcessError:
+        # The code encounters a runtime error (due to implementation error).
         return "FAIL"
 
 def find_emails(text):
@@ -36,7 +37,7 @@ def find_emails(text):
 
 def extract_link(link_file_path):
     """
-    Convert HTML content to JSON format using BeautifulSoup.
+    Extract HTML content to a link using BeautifulSoup.
     """
     link_file = open(link_file_path, 'r', encoding='utf-8')
     index = link_file.read()
