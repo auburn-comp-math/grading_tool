@@ -3,12 +3,15 @@ Grader class that grades students with matlab tests or python tests.
 """
 
 import os
-import zipfile
-from pathlib import Path
+import re
 import shutil
 import subprocess
+import zipfile
+from pathlib import Path
 
-import re
+import requests
+from bs4 import BeautifulSoup
+
 
 def execute_system_call(command):
     """
@@ -16,8 +19,6 @@ def execute_system_call(command):
     """
     result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
     return result.stdout
-
-
 
 def find_emails(text):
     """
@@ -28,6 +29,18 @@ def find_emails(text):
     # Find all email addresses in the text using the regular expression pattern
     emails = re.findall(email_pattern, text)
     return emails
+
+
+def extract_link(link_file_path):
+    """
+    Convert HTML content to JSON format using BeautifulSoup.
+    """
+    link_file = open(link_file_path, 'r', encoding='utf-8')
+    index = link_file.read()
+    link_file.close()
+
+    return BeautifulSoup(index, 'lxml').body.a['href']
+
 class Grader():
     """
     Grader class that grades students with matlab tests or python tests.
@@ -78,18 +91,21 @@ class Grader():
             print('Unzipping the submission file ...')
             self.unzip(self.submission_file, self.submission_dir, skip_dir=False)
 
-        # Get the student's directory
-        total_students = 0
-        student_dirs = []
+        student_dirs = set()
+
         for student in os.listdir(self.submission_dir):
             student_dir = os.path.join(self.submission_dir, student)
             if student_dir.endswith('.zip'):
-                student_dirs.append(student_dir)
-                total_students += 1
+                student_dirs.add(student_dir)
+            if student_dir.endswith('.html'):
+                zip_link = extract_link(student_dir) + '/archive/refs/heads/main.zip'
+                r = requests.get(zip_link, allow_redirects=True, timeout=10)
+                open(f'{os.path.join(self.submission_dir, Path(student_dir).stem)}.zip', 'wb').write(r.content)
+                student_dirs.add(f'{os.path.join(self.submission_dir, Path(student_dir).stem)}.zip')
+                
+        total_students = len(student_dirs)
 
-        for i in range(total_students):
-
-            student_file = student_dirs[i]
+        for i, student_file in enumerate(student_dirs):
             student_dir = os.path.join(self.submission_dir, Path(student_file).stem)
             self.unzip(student_file, student_dir)
 
@@ -110,10 +126,9 @@ class Grader():
 
                 print(f'Student {(i+1): 3d}/{total_students: 3d} scored: {cnt_passes} | {student_dir} \n')
 
-                grades_file.write(f'{Path(student_file).stem[0:26]}, {email}, {student_code}, {cnt_passes}\n')
+                grades_file.write(f'{Path(student_file).stem[0:15]}, {email}, {student_code}, {cnt_passes}\n')
 
             elif os.path.exists(os.path.join(student_dir, hw_str + '.py')):
-                # print('Python file found!')
                 student_code = 'python'
                 code_file = open(os.path.join(student_dir, hw_str + '.py'), 'r', encoding='utf-8')
                 # get author information
@@ -124,14 +139,14 @@ class Grader():
                 # run the test file
                 student_score = execute_system_call(\
                         f'python {os.path.join(student_dir, self.python_test)}')
-                
                 cnt_passes = student_score.count('PASS')
+
                 print(f'Student {(i+1): 3d}/{total_students: 3d} scored: {cnt_passes} | {student_dir} \n')
 
-                grades_file.write(f'{Path(student_file).stem[0:26]}, {email}, {student_code}, {cnt_passes}\n')
+                grades_file.write(f'{Path(student_file).stem[0:15]}, {email}, {student_code}, {cnt_passes}\n')
 
             else:
                 student_code = 'other'
-                grades_file.write(f'{Path(student_file).stem[0:26]}, , ,\n')
+                grades_file.write(f'{Path(student_file).stem[0:15]}, , ,\n')
 
         grades_file.close()
