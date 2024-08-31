@@ -8,6 +8,7 @@ from pathlib import Path
 import shutil
 import subprocess
 
+import re
 
 def execute_system_call(command):
     """
@@ -17,6 +18,16 @@ def execute_system_call(command):
     return result.stdout
 
 
+
+def find_emails(text):
+    """
+    Find all email addresses in the text using regular expressions.
+    """
+    # Define the regular expression pattern for matching email addresses
+    email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+    # Find all email addresses in the text using the regular expression pattern
+    emails = re.findall(email_pattern, text)
+    return emails
 class Grader():
     """
     Grader class that grades students with matlab tests or python tests.
@@ -38,13 +49,20 @@ class Grader():
         print('==============  Grader initialized! =============\n\n')
 
 
-    def unzip(self, file, file_dir):
+    def unzip(self, file, file_dir, skip_dir=True):
         """
         Unzip the submission file
         """
-        with zipfile.ZipFile(file, 'r') as zip_ref:
-            zip_ref.extractall(file_dir)
-
+        if not skip_dir:
+            with zipfile.ZipFile(file, 'r') as zip_ref:
+                zip_ref.extractall(file_dir)
+        else:
+            with zipfile.ZipFile(file, 'r') as zip_ref:
+                for zip_info in zip_ref.infolist():
+                    if zip_info.is_dir():
+                        continue
+                    zip_info.filename = os.path.basename(zip_info.filename)
+                    zip_ref.extract(zip_info, file_dir)
 
     def grade(self, hw_str='hw00'):
         """
@@ -58,7 +76,7 @@ class Grader():
         # Unzip the submission file
         if not os.path.exists(self.submission_dir):
             print('Unzipping the submission file ...')
-            self.unzip(self.submission_file, self.submission_dir)
+            self.unzip(self.submission_file, self.submission_dir, skip_dir=False)
 
         # Get the student's directory
         total_students = 0
@@ -79,8 +97,7 @@ class Grader():
                 student_code = 'matlab'
                 code_file = open(os.path.join(student_dir, hw_str + '.m'), 'r', encoding='utf-8')
                 # get author information
-                email = code_file.readlines()[0].split('%')[1]\
-                    .replace('Author:', '').replace('/', ' ').strip().split(' ')[-1]
+                email = ' '.join(find_emails(code_file.readlines()[0]))
                 code_file.close()
                 # copy the test file to the student's directory
                 shutil.copy(os.path.join(self.test_dir, self.matlab_test), student_dir)
@@ -100,8 +117,7 @@ class Grader():
                 student_code = 'python'
                 code_file = open(os.path.join(student_dir, hw_str + '.py'), 'r', encoding='utf-8')
                 # get author information
-                email = code_file.readlines()[0].split('#')[1]\
-                    .replace('Author:', '').replace('/', ' ').strip().split(' ')[-1]
+                email = ' '.join(find_emails(code_file.readlines()[0]))
                 code_file.close()
                 # copy the test file to the student's directory
                 shutil.copy(os.path.join(self.test_dir, self.python_test), student_dir)
