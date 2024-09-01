@@ -1,3 +1,6 @@
+"""
+Test script for grading homework.
+"""
 from grader import Grader
 
 # Initialize the grader
