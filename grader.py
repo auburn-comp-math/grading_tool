@@ -39,11 +39,9 @@ def extract_link(link_file_path):
     """
     Extract HTML content to a link using BeautifulSoup.
     """
-    link_file = open(link_file_path, 'r', encoding='utf-8')
-    index = link_file.read()
-    link_file.close()
-
-    return BeautifulSoup(index, 'lxml').body.a['href']
+    with open(link_file_path, 'r', encoding='utf-8') as link_file:
+        index = link_file.read()
+        return BeautifulSoup(index, 'lxml').body.a['href']
 
 
 def unzip(file, file_dir, skip_dir=True):
@@ -104,32 +102,30 @@ class Grader():
         """
         Grade the student's MATLAB code
         """
-        code_file = open(os.path.join(student_path, hw_str + '.m'), 'r', encoding='utf-8')
-        # get author information
-        email = ' '.join(find_emails(code_file.readlines()[0]))
-        code_file.close()
-        # copy the test file to the student's directory
-        shutil.copy(os.path.join(self.test_dir, self.matlab_test), student_path)
-        # run the test file
-        student_score = execute_system_call(\
-                f'matlab -nojvm -nosplash -nodesktop -batch \
-                "run(\'{os.path.join(student_path, self.matlab_test)}\');exit;"')
-        return student_score.count('PASS'), email
+        with open(os.path.join(student_path, hw_str + '.m'), 'r', encoding='utf-8') as code_file:
+            # get author information
+            email = ' '.join(find_emails(code_file.readlines()[0]))
+            # copy the test file to the student's directory
+            shutil.copy(os.path.join(self.test_dir, self.matlab_test), student_path)
+            # run the test file
+            student_score = execute_system_call(\
+                    f'matlab -nojvm -nosplash -nodesktop -batch \
+                    "run(\'{os.path.join(student_path, self.matlab_test)}\');exit;"')
+            return student_score.count('PASS'), email
 
     def python_grade(self, student_path, hw_str='hw00'):
         """
         Grade the student's Python code
         """
-        code_file = open(os.path.join(student_path, hw_str + '.py'), 'r', encoding='utf-8')
-        # get author information
-        email = ' '.join(find_emails(code_file.readlines()[0]))
-        code_file.close()
-        # copy the test file to the student's directory
-        shutil.copy(os.path.join(self.test_dir, self.python_test), student_path)
-        # run the test file
-        student_score = execute_system_call(\
-                f'python {os.path.join(student_path, self.python_test)}')
-        return student_score.count('PASS'), email
+        with open(os.path.join(student_path, hw_str + '.py'), 'r', encoding='utf-8') as code_file:
+            # get author information
+            email = ' '.join(find_emails(code_file.readlines()[0]))
+            # copy the test file to the student's directory
+            shutil.copy(os.path.join(self.test_dir, self.python_test), student_path)
+            # run the test file
+            student_score = execute_system_call(\
+                    f'python {os.path.join(student_path, self.python_test)}')
+            return student_score.count('PASS'), email
 
     def grade(self, hw_str='hw00'):
         """
@@ -138,39 +134,38 @@ class Grader():
         @param hw_str: The homework string
         """
         # create a file to store the grades
-        grades_file = open(hw_str + '.csv', 'w', encoding='utf-8')
+        with open(hw_str + '.csv', 'w', encoding='utf-8') as grades_file:
+            grades_file.write('Student, Email, Language, Score\n')
+            # Unzip the submission file
+            if not os.path.exists(self.submission_dir):
+                print('Unzipping the submission file ...')
+                unzip(self.submission_file, self.submission_dir, skip_dir=False)
 
-        # Unzip the submission file
-        if not os.path.exists(self.submission_dir):
-            print('Unzipping the submission file ...')
-            unzip(self.submission_file, self.submission_dir, skip_dir=False)
+            student_dirs = self.get_dirs()
 
-        student_dirs = self.get_dirs()
+            total_students = len(student_dirs)
 
-        total_students = len(student_dirs)
+            for i, student_file in enumerate(student_dirs):
+                student_dir = os.path.join(self.submission_dir, Path(student_file).stem)
+                unzip(student_file, student_dir)
 
-        for i, student_file in enumerate(student_dirs):
-            student_dir = os.path.join(self.submission_dir, Path(student_file).stem)
-            unzip(student_file, student_dir)
-
-            if os.path.exists(os.path.join(student_dir, hw_str + '.m')):
-                student_code = 'matlab'
-                cnt_passes, email  = self.matlab_grade(student_dir, hw_str)
-                print(
-                    f'Student {(i+1): 3d}/{total_students: 3d}\
-                    scored: {cnt_passes} | {student_dir} \n')
-                grades_file.write(
-                    f'{Path(student_file).stem[0:15]}, {email}, {student_code}, {cnt_passes}\n')
-            elif os.path.exists(os.path.join(student_dir, hw_str + '.py')):
-                student_code = 'python'
-                cnt_passes, email = self.python_grade(student_dir, hw_str)
-                print(
-                    f'Student {(i+1): 3d}/{total_students: 3d}\
-                    scored: {cnt_passes} | {student_dir} \n')
-                grades_file.write(
-                    f'{Path(student_file).stem[0:15]}, {email}, {student_code}, {cnt_passes}\n')
-            else:
-                student_code = 'other'
-                grades_file.write(f'{Path(student_file).stem[0:15]}, , ,\n')
-
-        grades_file.close()
+                if os.path.exists(os.path.join(student_dir, hw_str + '.m')):
+                    student_code = 'matlab'
+                    cnt_passes, email  = self.matlab_grade(student_dir, hw_str)
+                    print(
+                        f'Student {(i+1): 3d}/{total_students: 3d}\
+                        scored: {cnt_passes} | {student_dir} \n')
+                    grades_file.write(
+                        f'{Path(student_file).stem[0:15]}, {email}, {student_code}, {cnt_passes}\n')
+                elif os.path.exists(os.path.join(student_dir, hw_str + '.py')):
+                    student_code = 'python'
+                    cnt_passes, email = self.python_grade(student_dir, hw_str)
+                    print(
+                        f'Student {(i+1): 3d}/{total_students: 3d}\
+                        scored: {cnt_passes} | {student_dir} \n')
+                    grades_file.write(
+                        f'{Path(student_file).stem[0:15]}, {email}, {student_code}, {cnt_passes}\n')
+                else:
+                    student_code = 'other'
+                    grades_file.write(f'{Path(student_file).stem[0:15]}, , ,\n')
+                    
