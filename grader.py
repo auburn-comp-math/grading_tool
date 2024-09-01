@@ -92,9 +92,9 @@ class Grader():
             if student_dir.endswith('.html'):
                 zip_link = extract_link(student_dir) + '/archive/refs/heads/main.zip'
                 r = requests.get(zip_link, allow_redirects=True, timeout=10)
-                open(
-                    f'{os.path.join(self.submission_dir, Path(student_dir).stem)}.zip', 'wb')\
-                    .write(r.content)
+                with open(
+                    f'{os.path.join(self.submission_dir, Path(student_dir).stem)}.zip', 'wb') as f:
+                    f.write(r.content)
                 student_dirs.add(f'{os.path.join(self.submission_dir, Path(student_dir).stem)}.zip')
         return student_dirs
 
