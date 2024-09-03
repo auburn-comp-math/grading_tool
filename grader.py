@@ -157,10 +157,6 @@ class Grader():
 
                 name = Path(student_file).stem[0:15]
 
-                matlab_cnt_passes = 0
-                python_cnt_passes = 0
-                email = ''
-
                 if os.path.exists(os.path.join(student_dir, hw_str + '.m')) or\
                      os.path.exists(os.path.join(student_dir, hw_str + '.py')):
                     if os.path.exists(os.path.join(student_dir, hw_str + '.m')):
