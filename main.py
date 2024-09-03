@@ -12,4 +12,5 @@ g = Grader('submissions.zip', 'submissions', 'tests')
 
 # Grade the students
 # The argument is the homework string (hw00, hw01, etc.)
-g.grade(hw_str='hw00')
+# The output file is the CSV file where the grades will be saved
+g.grade(hw_str='hw00', output_file='grades.csv')

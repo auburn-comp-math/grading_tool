@@ -21,7 +21,10 @@ def test_p2():
     hw_assert (p2(A) == -1)
     A = np.array([[1, 0], [0, 1]])
     hw_assert (p2(A) == 1)
-
+    A = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    hw_assert (p2(A) == 1)
+    A = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    hw_assert (p2(A) == 1)
 def test_p3():
     start = time.time()
     p3()

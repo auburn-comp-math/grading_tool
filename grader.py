@@ -41,7 +41,13 @@ def extract_link(link_file_path):
     """
     with open(link_file_path, 'r', encoding='utf-8') as link_file:
         index = link_file.read()
-        return BeautifulSoup(index, 'lxml').body.a['href']
+        link = BeautifulSoup(index, 'lxml').body.a['href']
+        if link.endswith('.git'):
+            return link[:-4]
+        elif link.find('blob') != -1:
+            return link[:link.find('blob')]
+        else:
+            return link
 
 
 def unzip(file, file_dir, skip_dir=True):
@@ -127,14 +133,14 @@ class Grader():
                     f'python {os.path.join(student_path, self.python_test)}')
             return student_score.count('PASS'), email
 
-    def grade(self, hw_str='hw00'):
+    def grade(self, hw_str='hw00', output_file='grades.csv'):
         """
         Grade the students
 
         @param hw_str: The homework string
         """
         # create a file to store the grades
-        with open(hw_str + '.csv', 'w', encoding='utf-8') as grades_file:
+        with open(output_file, 'w', encoding='utf-8') as grades_file:
             grades_file.write('Student, Email, Language, Score\n')
             # Unzip the submission file
             if not os.path.exists(self.submission_dir):
@@ -149,22 +155,36 @@ class Grader():
                 student_dir = os.path.join(self.submission_dir, Path(student_file).stem)
                 unzip(student_file, student_dir)
 
-                if os.path.exists(os.path.join(student_dir, hw_str + '.m')):
-                    student_code = 'matlab'
-                    cnt_passes, email  = self.matlab_grade(student_dir, hw_str)
-                    print(
-                        f'Student {(i+1): 3d}/{total_students: 3d}\
-                        scored: {cnt_passes} | {student_dir} \n')
-                    grades_file.write(
-                        f'{Path(student_file).stem[0:15]}, {email}, {student_code}, {cnt_passes}\n')
-                elif os.path.exists(os.path.join(student_dir, hw_str + '.py')):
-                    student_code = 'python'
-                    cnt_passes, email = self.python_grade(student_dir, hw_str)
-                    print(
-                        f'Student {(i+1): 3d}/{total_students: 3d}\
-                        scored: {cnt_passes} | {student_dir} \n')
-                    grades_file.write(
-                        f'{Path(student_file).stem[0:15]}, {email}, {student_code}, {cnt_passes}\n')
+                matlab_cnt_passes = 0
+                python_cnt_passes = 0
+                email = ''
+
+                if os.path.exists(os.path.join(student_dir, hw_str + '.m')) or os.path.exists(os.path.join(student_dir, hw_str + '.py')):
+                    if os.path.exists(os.path.join(student_dir, hw_str + '.m')):
+                        matlab_cnt_passes, matlab_email  = self.matlab_grade(student_dir, hw_str)
+                        if len(matlab_email) > 0 or matlab_cnt_passes > 0:
+                            email = matlab_email
+
+                            student_code = 'matlab'
+                            print(
+                            f'Student {(i+1): 3d}/{total_students: 3d}\
+                            scored: {matlab_cnt_passes} | {student_dir} \n')
+                            grades_file.write(
+                                f'{Path(student_file).stem[0:15]}, {email}, {student_code}, {matlab_cnt_passes}\n')
+                    
+                    if os.path.exists(os.path.join(student_dir, hw_str + '.py')):
+                        python_cnt_passes, python_email = self.python_grade(student_dir, hw_str)
+
+                        if len(python_email) > 0 or python_cnt_passes > 0:
+                            email = python_email
+
+                            student_code = 'python'
+                            print(
+                            f'Student {(i+1): 3d}/{total_students: 3d}\
+                            scored: {python_cnt_passes} | {student_dir} \n')
+                            grades_file.write(
+                                f'{Path(student_file).stem[0:15]}, {email}, {student_code}, {python_cnt_passes}\n')
+
                 else:
                     student_code = 'other'
                     grades_file.write(f'{Path(student_file).stem[0:15]}, , ,\n')
