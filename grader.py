@@ -44,10 +44,9 @@ def extract_link(link_file_path):
         link = BeautifulSoup(index, 'lxml').body.a['href']
         if link.endswith('.git'):
             return link[:-4]
-        elif link.find('blob') != -1:
+        if link.find('blob') != -1:
             return link[:link.find('blob')]
-        else:
-            return link
+        return link
 
 
 def unzip(file, file_dir, skip_dir=True):
@@ -97,10 +96,11 @@ class Grader():
                 student_dirs.add(student_dir)
             if student_dir.endswith('.html'):
                 zip_link = extract_link(student_dir) + '/archive/refs/heads/main.zip'
-                r = requests.get(zip_link, allow_redirects=True, timeout=10)
+                req = requests.get(zip_link, allow_redirects=True, timeout=10)
                 with open(
-                    f'{os.path.join(self.submission_dir, Path(student_dir).stem)}.zip', 'wb') as f:
-                    f.write(r.content)
+                    f'{os.path.join(self.submission_dir, Path(student_dir).stem)}.zip'\
+                        , 'wb') as f_in:
+                    f_in.write(req.content)
                 student_dirs.add(f'{os.path.join(self.submission_dir, Path(student_dir).stem)}.zip')
         return student_dirs
 
@@ -160,28 +160,23 @@ class Grader():
                 if os.path.exists(os.path.join(student_dir, hw_str + '.m')) or\
                      os.path.exists(os.path.join(student_dir, hw_str + '.py')):
                     if os.path.exists(os.path.join(student_dir, hw_str + '.m')):
-                        matlab_cnt_passes, matlab_email  = self.matlab_grade(student_dir, hw_str)
-                        if len(matlab_email) > 0 or matlab_cnt_passes > 0:
-                            email = matlab_email
-
+                        cnt_passes, email  = self.matlab_grade(student_dir, hw_str)
+                        if len(email) > 0 or cnt_passes > 0:
                             student_code = 'matlab'
                             print(
                             f'Student {(i+1): 3d}/{total_students: 3d}\
-                            scored: {matlab_cnt_passes} | {student_dir} \n')
+                            scored: {cnt_passes} | {student_dir} \n')
                             grades_file.write(
-                                f'{name}, {email}, {student_code}, {matlab_cnt_passes}\n')
+                                f'{name}, {email}, {student_code}, {cnt_passes}\n')
                     if os.path.exists(os.path.join(student_dir, hw_str + '.py')):
-                        python_cnt_passes, python_email = self.python_grade(student_dir, hw_str)
-
-                        if len(python_email) > 0 or python_cnt_passes > 0:
-                            email = python_email
-
+                        cnt_passes, email = self.python_grade(student_dir, hw_str)
+                        if len(email) > 0 or cnt_passes > 0:
                             student_code = 'python'
                             print(
                             f'Student {(i+1): 3d}/{total_students: 3d}\
-                            scored: {python_cnt_passes} | {student_dir} \n')
+                            scored: {cnt_passes} | {student_dir} \n')
                             grades_file.write(
-                                f'{name}, {email}, {student_code}, {python_cnt_passes}\n')
+                                f'{name}, {email}, {student_code}, {cnt_passes}\n')
 
                 else:
                     student_code = 'other'
