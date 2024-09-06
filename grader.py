@@ -206,22 +206,24 @@ class Grader():
 
         return data
 
-    def println(self, i,  student_name, item):
+    def println(self, i, student_name, student_id, item):
         """
         Print the student's score
         """
         cnt_passes, email, student_code = item
         print(f'Student {(i+1): 3d}/{self.total_students: 3d}\
-              scored: {cnt_passes:4d} | {student_name} | {email: <25} | {student_code} \n')
+              scored: {cnt_passes:4d} | {student_name:<20} | {student_id} |\
+                  {email: <25} | {student_code} \n')
 
-    def output(self, grades_file, i, name, data):
+    def output(self, grades_file, i, student_name, student_id, data):
         """
         Output the grades to the file
         """
         for _item in data:
             cnt_passes, email, student_code = _item
-            self.println(i, name, _item)
-            grades_file.write(f'{name}, {email:<25}, {student_code:<8}, {cnt_passes}\n')
+            self.println(i, student_name, student_id, _item)
+            grades_file.write(f'{student_name:<20}, {student_id}, \
+                              {email:<25}, {student_code:<8}, {cnt_passes}\n')
 
     def grade(self, hw_str='hw00', output_file='grades.csv'):
         """
@@ -231,7 +233,7 @@ class Grader():
         """
         # create a file to store the grades
         with open(output_file, 'w', encoding='utf-8') as grades_file:
-            grades_file.write('Student, Email, Language, Score\n')
+            grades_file.write('ID, Email, Language, Score\n')
             # Unzip the submission file
             if not os.path.exists(self.submission_dir):
                 print('Unzipping the submission file ...')
@@ -249,14 +251,15 @@ class Grader():
                     print(f'Bad zip file: {student_file}')
                     continue
 
-                name = Path(student_file).stem[0:15]
+                student_name = Path(student_file).stem.split('_')[0]
+                student_id   = Path(student_file).stem.split('_')[1]
 
                 data = self.grade_standard_file(hw_str, student_dir)
 
                 if len(data) > 0:
-                    self.output(grades_file, i, name, data)
+                    self.output(grades_file, i, student_name, student_id, data)
                 else:
                     cnt_passes, email, student_code = self.grade_exception_file(hw_str, student_dir)
                     data.append( (cnt_passes, email, student_code))
-                    self.output(grades_file, i, name, data)
+                    self.output(grades_file, i, student_name, student_id, data)
                     
