@@ -206,23 +206,23 @@ class Grader():
 
         return data
 
-    def println(self, i, student_name, student_id, item):
+    def println(self, i, student_info, item):
         """
         Print the student's score
         """
         cnt_passes, email, student_code = item
         print(f'Student {(i+1): 3d}/{self.total_students: 3d}\
-              scored: {cnt_passes:4d} | {student_name:<20} | {student_id} |\
+              scored: {cnt_passes:4d} | {student_info[0]:<20} | {student_info[1]} |\
                   {email: <25} | {student_code} \n')
 
-    def output(self, grades_file, i, student_name, student_id, data):
+    def output(self, grades_file, i, student_info, data):
         """
         Output the grades to the file
         """
         for _item in data:
             cnt_passes, email, student_code = _item
-            self.println(i, student_name, student_id, _item)
-            grades_file.write(f'{student_name:<20}, {student_id}, \
+            self.println(i, student_info, _item)
+            grades_file.write(f'{student_info[0]:<20}, {student_info[1]}, \
                               {email:<25}, {student_code:<8}, {cnt_passes}\n')
 
     def grade(self, hw_str='hw00', output_file='grades.csv'):
@@ -251,15 +251,14 @@ class Grader():
                     print(f'Bad zip file: {student_file}')
                     continue
 
-                student_name = Path(student_file).stem.split('_')[0]
-                student_id   = Path(student_file).stem.split('_')[1]
+                student_info = Path(student_file).stem.split('_')[:2]
 
                 data = self.grade_standard_file(hw_str, student_dir)
 
                 if len(data) > 0:
-                    self.output(grades_file, i, student_name, student_id, data)
+                    self.output(grades_file, i, student_info, data)
                 else:
                     cnt_passes, email, student_code = self.grade_exception_file(hw_str, student_dir)
                     data.append( (cnt_passes, email, student_code))
-                    self.output(grades_file, i, student_name, student_id, data)
+                    self.output(grades_file, i, student_info, data)
                     
