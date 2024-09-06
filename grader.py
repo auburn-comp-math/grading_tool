@@ -3,70 +3,15 @@ Grader class that grades students with matlab tests or python tests.
 """
 
 import os
-import re
 import shutil
-import subprocess
 import zipfile
 from pathlib import Path
 
 import requests
-from bs4 import BeautifulSoup
 
+from utility import execute_system_call, find_emails, extract_link, unzip
 
 NULL_EMAIL = 'null___@null__.___'
-
-def execute_system_call(command):
-    """
-    Execute a system call and return the output
-    """
-    try:
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
-        return result.stdout
-    except subprocess.CalledProcessError:
-        # The code encounters a runtime error (due to implementation error).
-        return "FAIL"
-
-def find_emails(text):
-    """
-    Find all email addresses in the text using regular expressions.
-    """
-    # Define the regular expression pattern for matching email addresses
-    email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-    # Find all email addresses in the text using the regular expression pattern
-    emails = re.findall(email_pattern, text)
-    return emails
-
-
-def extract_link(link_file_path):
-    """
-    Extract HTML content to a link using BeautifulSoup.
-    """
-    with open(link_file_path, 'r', encoding='utf-8') as link_file:
-        index = link_file.read()
-        link = BeautifulSoup(index, 'lxml').body.a['href']
-        if link.endswith('.git'):
-            return link[:-4]
-        if link.find('blob') != -1:
-            return link[:link.find('blob')]
-        if link.find('tree') != -1:
-            return link[:link.find('tree')]
-        return link
-
-
-def unzip(file, file_dir, skip_dir=True):
-    """
-    Unzip the submission file
-    """
-    if not skip_dir:
-        with zipfile.ZipFile(file, 'r') as zip_ref:
-            zip_ref.extractall(file_dir)
-    else:
-        with zipfile.ZipFile(file, 'r') as zip_ref:
-            for zip_info in zip_ref.infolist():
-                if zip_info.is_dir():
-                    continue
-                zip_info.filename = os.path.basename(zip_info.filename)
-                zip_ref.extract(zip_info, file_dir)
 
 class Grader():
     """
