@@ -125,6 +125,10 @@ class Grader():
             if _file.startswith('.') or _file.find('test') != -1:
                 local_files.remove(_file)
 
+        student_code = 'unknown'
+        cnt_passes = 0
+        email = NULL_EMAIL
+
         if len(local_files) == 1: # only one file
             _file = local_files[0]
             if _file.endswith('.m') or _file.endswith('.asv'):
@@ -132,38 +136,35 @@ class Grader():
                 shutil.copy(os.path.join(student_dir, _file), \
                         os.path.join(student_dir, hw_str+'.m'))
                 cnt_passes, email = self.matlab_grade(student_dir, hw_str)
-                return cnt_passes, email, student_code
 
-            if _file.endswith('.py'):
+            elif _file.endswith('.py'):
                 student_code = 'python'
                 shutil.copy(os.path.join(student_dir, _file), \
                         os.path.join(student_dir, hw_str+'.py'))
                 cnt_passes, email = self.python_grade(student_dir, hw_str)
-                return cnt_passes, email, student_code
 
-            if _file.endswith('.ipynb'):
+            elif _file.endswith('.ipynb'):
                 student_code = 'jupyter'
                 shutil.copy(os.path.join(student_dir, _file), \
                         os.path.join(student_dir, hw_str+'.ipynb'))
                 self.convert_to_python(student_dir, hw_str)
                 cnt_passes, email = self.python_grade(student_dir, hw_str)
-                return cnt_passes, email, student_code
 
-            # try to run with MATLAB or Python
-            shutil.copy(os.path.join(student_dir, _file), \
-                    os.path.join(student_dir, hw_str+'.m'))
-            cnt_passes, email = self.python_grade(student_dir, hw_str)
-            if cnt_passes > 0:
-                return cnt_passes, email, 'matlab'
+            else:
+                # try to run with MATLAB or Python
+                shutil.copy(os.path.join(student_dir, _file), \
+                        os.path.join(student_dir, hw_str+'.m'))
+                cnt_passes, email = self.matlab_grade(student_dir, hw_str)
+                if cnt_passes > 0:
+                    return cnt_passes, email, 'matlab'
 
-            shutil.copy(os.path.join(student_dir, _file), \
-                    os.path.join(student_dir, hw_str+'.py'))
-            cnt_passes, email = self.python_grade(student_dir, hw_str)
-            if cnt_passes > 0:
-                return cnt_passes, email, 'python'
+                shutil.copy(os.path.join(student_dir, _file), \
+                        os.path.join(student_dir, hw_str+'.py'))
+                cnt_passes, email = self.python_grade(student_dir, hw_str)
+                if cnt_passes > 0:
+                    return cnt_passes, email, 'python'
 
-            student_code = 'other'
-            return 0,NULL_EMAIL, student_code
+            return cnt_passes, email, student_code
 
         student_code = 'multi-files'
         return 0, NULL_EMAIL, student_code
