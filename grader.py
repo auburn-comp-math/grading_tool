@@ -149,6 +149,19 @@ class Grader():
                 cnt_passes, email = self.python_grade(student_dir, hw_str)
                 return cnt_passes, email, student_code
 
+            # try to run with MATLAB or Python
+            shutil.copy(os.path.join(student_dir, _file), \
+                    os.path.join(student_dir, hw_str+'.m'))
+            cnt_passes, email = self.python_grade(student_dir, hw_str)
+            if cnt_passes > 0:
+                return cnt_passes, email, 'matlab'
+
+            shutil.copy(os.path.join(student_dir, _file), \
+                    os.path.join(student_dir, hw_str+'.py'))
+            cnt_passes, email = self.python_grade(student_dir, hw_str)
+            if cnt_passes > 0:
+                return cnt_passes, email, 'python'
+
             student_code = 'other'
             return 0,NULL_EMAIL, student_code
 
