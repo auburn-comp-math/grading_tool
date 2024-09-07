@@ -7,6 +7,7 @@ import os
 import re
 import zipfile
 import subprocess
+import pandas as pd
 from bs4 import BeautifulSoup
 
 def execute_system_call(command):
@@ -61,3 +62,17 @@ def unzip(file, file_dir, skip_dir=True):
                     continue
                 zip_info.filename = os.path.basename(zip_info.filename)
                 zip_ref.extract(zip_info, file_dir)
+
+def remove_duplicates(csv_file):
+    """
+    Remove duplicate IDs (remain the maximum score value) in the CSV file with panda
+    """
+    # Read the CSV file
+    df = pd.read_csv(csv_file)
+
+    # Remove duplicate IDs (remain the maximum score value)
+    df = df.sort_values('Score', ascending=False).drop_duplicates('ID').sort_index()
+
+    # Write the updated data to the CSV file
+    df.to_csv(csv_file, index=False)
+    

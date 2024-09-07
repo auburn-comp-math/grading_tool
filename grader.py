@@ -9,7 +9,7 @@ from pathlib import Path
 
 import requests
 
-from utility import execute_system_call, find_emails, extract_link, unzip
+from utility import execute_system_call, find_emails, extract_link, unzip, remove_duplicates
 
 NULL_EMAIL = 'null___@null__.___'
 
@@ -227,7 +227,7 @@ class Grader():
         """
         # create a file to store the grades
         with open(output_file, 'w', encoding='utf-8') as grades_file:
-            grades_file.write('Name, ID, Email, Language, Score\n')
+            grades_file.write('Name,ID,Email,Language,Score\n')
             # Unzip the submission file
             if not os.path.exists(self.submission_dir):
                 print('Unzipping the submission file ...')
@@ -257,4 +257,10 @@ class Grader():
                     cnt_passes, email, student_code = self.grade_exception_file(hw_str, student_dir)
                     data.append( (cnt_passes, email, student_code))
                     self.output(grades_file, i, student_info, data)
+
+        grades_file.close()
+        print(f'\nGrades saved in {output_file}\n')
+        print('Cleaning up ...')
+        remove_duplicates(output_file)
+        print('==============  Grading completed! =============\n\n')
                     
