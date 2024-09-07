@@ -71,7 +71,7 @@ def remove_duplicates(csv_file):
     df = pd.read_csv(csv_file)
 
     # Remove duplicate IDs (remain the maximum score value)
-    df = df.sort_values('Score', ascending=False).drop_duplicates('ID').sort_index()
+    df = df.sort_values('Score', ascending=False).drop_duplicates('ID').sort_values('ID')
 
     # Write the updated data to the CSV file
     df.to_csv(csv_file, index=False)

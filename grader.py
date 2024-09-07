@@ -6,6 +6,7 @@ import os
 import shutil
 import zipfile
 from pathlib import Path
+from time import time
 
 import requests
 
@@ -190,7 +191,7 @@ class Grader():
 
         return data
 
-    def println(self, i, student_info, item):
+    def println(self, i, student_info, item, running_time):
         """
         Print the student's score
 
@@ -201,9 +202,9 @@ class Grader():
         cnt_passes, email, student_code = item
         print(f'Student {(i+1): 3d}/{self.total_students: 3d}\
               scored: {cnt_passes:4d} | {student_info[0]:<20} | {student_info[1]} |\
-                  {email: <25} | {student_code} \n')
+                  {email: <25} | {student_code} | {running_time: 6.2f} sec \n')
 
-    def output(self, grades_file, i, student_info, data):
+    def output(self, grades_file, i, student_info, data, running_time):
         """
         Output the grades to the file
 
@@ -214,7 +215,7 @@ class Grader():
         """
         for _item in data:
             cnt_passes, email, student_code = _item
-            self.println(i, student_info, _item)
+            self.println(i, student_info, _item, running_time)
             grades_file.write(f'{student_info[0]:<20}, {student_info[1]}, \
                               {email:<25}, {student_code:<8}, {cnt_passes}\n')
 
@@ -249,14 +250,19 @@ class Grader():
 
                 student_info = Path(student_file).stem.split('_')[:2]
 
+                starting_time = time()
+
                 data = self.grade_standard_file(hw_str, student_dir)
 
                 if len(data) > 0:
-                    self.output(grades_file, i, student_info, data)
+                    running_time = time() - starting_time
+                    self.output(grades_file, i, student_info, data, running_time)
                 else:
+                    starting_time = time()
                     cnt_passes, email, student_code = self.grade_exception_file(hw_str, student_dir)
+                    running_time = time() - starting_time
                     data.append( (cnt_passes, email, student_code))
-                    self.output(grades_file, i, student_info, data)
+                    self.output(grades_file, i, student_info, data, running_time)
 
         grades_file.close()
         print(f'\nGrades saved in {output_file}\n')
