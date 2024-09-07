@@ -181,17 +181,21 @@ class Grader():
 
         if os.path.exists(os.path.join(student_dir, hw_str + '.m')):
             student_code = 'matlab'
+            starting_time = time()
             cnt_passes, email = self.matlab_grade(student_dir, hw_str)
-            data.append( (cnt_passes, email, student_code))
+            running_time = time() - starting_time
+            data.append( (cnt_passes, email, student_code, running_time))
 
         if os.path.exists(os.path.join(student_dir, hw_str + '.py')):
-            cnt_passes, email= self.python_grade(student_dir, hw_str)
             student_code = 'python'
-            data.append( (cnt_passes, email, student_code))
+            starting_time = time()
+            cnt_passes, email= self.python_grade(student_dir, hw_str)
+            running_time = time() - starting_time
+            data.append( (cnt_passes, email, student_code, running_time))
 
         return data
 
-    def println(self, i, student_info, item, running_time):
+    def println(self, i, student_info, item):
         """
         Print the student's score
 
@@ -199,12 +203,12 @@ class Grader():
         @param student_info: The student information
         @param item: The student item
         """
-        cnt_passes, email, student_code = item
+        cnt_passes, email, student_code, running_time = item
         print(f'Student {(i+1): 3d}/{self.total_students: 3d}\
               scored: {cnt_passes:4d} | {student_info[0]:<20} | {student_info[1]} |\
                   {email: <25} | {student_code} | {running_time: 6.2f} sec \n')
 
-    def output(self, grades_file, i, student_info, data, running_time):
+    def output(self, grades_file, i, student_info, data):
         """
         Output the grades to the file
 
@@ -214,8 +218,8 @@ class Grader():
         @param data: The student data
         """
         for _item in data:
-            cnt_passes, email, student_code = _item
-            self.println(i, student_info, _item, running_time)
+            cnt_passes, email, student_code, _ = _item
+            self.println(i, student_info, _item)
             grades_file.write(f'{student_info[0]:<20}, {student_info[1]}, \
                               {email:<25}, {student_code:<8}, {cnt_passes}\n')
 
@@ -250,19 +254,14 @@ class Grader():
 
                 student_info = Path(student_file).stem.split('_')[:2]
 
-                starting_time = time()
 
                 data = self.grade_standard_file(hw_str, student_dir)
 
                 if len(data) > 0:
-                    running_time = time() - starting_time
-                    self.output(grades_file, i, student_info, data, running_time)
+                    self.output(grades_file, i, student_info, data)
                 else:
-                    starting_time = time()
-                    cnt_passes, email, student_code = self.grade_exception_file(hw_str, student_dir)
-                    running_time = time() - starting_time
-                    data.append( (cnt_passes, email, student_code))
-                    self.output(grades_file, i, student_info, data, running_time)
+                    data.append(self.grade_exception_file(hw_str, student_dir))
+                    self.output(grades_file, i, student_info, data)
 
         grades_file.close()
         print(f'\nGrades saved in {output_file}\n')
