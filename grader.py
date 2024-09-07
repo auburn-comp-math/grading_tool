@@ -227,7 +227,7 @@ class Grader():
         """
         # create a file to store the grades
         with open(output_file, 'w', encoding='utf-8') as grades_file:
-            grades_file.write('ID, Email, Language, Score\n')
+            grades_file.write('Name, ID, Email, Language, Score\n')
             # Unzip the submission file
             if not os.path.exists(self.submission_dir):
                 print('Unzipping the submission file ...')
