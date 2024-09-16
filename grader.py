@@ -129,6 +129,7 @@ class Grader():
         student_code = 'unknown'
         cnt_passes = 0
         email = NULL_EMAIL
+        starting_time = time()
 
         if len(local_files) == 1: # only one file
             _file = local_files[0]
@@ -165,10 +166,11 @@ class Grader():
                 if cnt_passes > 0:
                     return cnt_passes, email, 'python'
 
-            return cnt_passes, email, student_code
+            running_time = time() - starting_time
+            return cnt_passes, email, student_code, running_time
 
         student_code = 'multi-files'
-        return 0, NULL_EMAIL, student_code
+        return 0, NULL_EMAIL, student_code, 0
 
     def grade_standard_file(self, hw_str, student_dir):
         """
