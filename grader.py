@@ -157,14 +157,16 @@ class Grader():
                 shutil.copy(os.path.join(student_dir, _file), \
                         os.path.join(student_dir, hw_str+'.m'))
                 cnt_passes, email = self.matlab_grade(student_dir, hw_str)
+                running_time = time() - starting_time
                 if cnt_passes > 0:
-                    return cnt_passes, email, 'matlab'
+                    return cnt_passes, email, 'matlab', running_time
 
                 shutil.copy(os.path.join(student_dir, _file), \
                         os.path.join(student_dir, hw_str+'.py'))
                 cnt_passes, email = self.python_grade(student_dir, hw_str)
+                running_time = time() - starting_time
                 if cnt_passes > 0:
-                    return cnt_passes, email, 'python'
+                    return cnt_passes, email, 'python', running_time
 
             running_time = time() - starting_time
             return cnt_passes, email, student_code, running_time
