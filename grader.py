@@ -258,6 +258,8 @@ class Grader():
 
                 student_info = Path(student_file).stem.split('_')[:2]
 
+                if student_info[-1] == 'LATE':
+                    student_info = Path(student_file).stem.split('_')[0], Path(student_file).stem.split('_')[2]
 
                 data = self.grade_standard_file(hw_str, student_dir)
 
