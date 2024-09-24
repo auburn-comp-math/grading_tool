@@ -66,7 +66,8 @@ class Grader():
         @param student_path: The student's directory
         @param hw_str: The homework string
         """
-        with open(os.path.join(student_path, hw_str + '.m'), 'r', encoding='utf-8') as code_file:
+        with open(os.path.join(student_path, hw_str + '.m'), 'r',\
+                   encoding='utf-8', errors='ignore') as code_file:
             # get author information
             email = ' '.join(find_emails(code_file.readlines()[0]))
             if email.find('@')== -1:
@@ -89,7 +90,8 @@ class Grader():
         @param student_path: The student's directory
         @param hw_str: The homework string
         """
-        with open(os.path.join(student_path, hw_str + '.py'), 'r', encoding='utf-8') as code_file:
+        with open(os.path.join(student_path, hw_str + '.py'), 'r', \
+                  encoding='utf-8', errors='ignore') as code_file:
             # get author information
             email = ' '.join(find_emails(code_file.readlines()[0]))
             if email.find('@')== -1:
@@ -259,7 +261,8 @@ class Grader():
                 student_info = Path(student_file).stem.split('_')[:2]
 
                 if student_info[-1] == 'LATE':
-                    student_info = Path(student_file).stem.split('_')[0], Path(student_file).stem.split('_')[2]
+                    student_info = Path(student_file).stem.split('_')[0], \
+                        Path(student_file).stem.split('_')[2]
 
                 data = self.grade_standard_file(hw_str, student_dir)
 
@@ -274,4 +277,3 @@ class Grader():
         print('Cleaning up ...')
         remove_duplicates(output_file)
         print('==============  Grading completed! =============\n\n')
-                    
