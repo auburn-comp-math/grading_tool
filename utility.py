@@ -33,7 +33,7 @@ def execute_system_call(command, max_wait=30):
                     ) as process:
         try:
             std_out, std_err = process.communicate(timeout=max_wait)
-            output = ' '.join(re.findall('PASS|FAIL', std_out.strip()))
+            output = ''.join(re.findall('PASS|FAIL', std_out.strip()))
             if std_err:
                 output += '  {{Implementation Error}}@[' + \
                     std_err.strip().replace('\n','').replace(',', '') + ']'
@@ -41,8 +41,8 @@ def execute_system_call(command, max_wait=30):
         except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as err:
             if isinstance(err, subprocess.TimeoutExpired):
                 kill(process.pid)
-                return '  {{TimeOut Error}}'
-            return '  {{RunTime Error}}'
+                return '  {{TimeOut Error}}  '
+            return '  {{RunTime Error}}  '
 
 def find_emails(text):
     """
