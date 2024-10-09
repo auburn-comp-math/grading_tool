@@ -215,10 +215,10 @@ class Grader():
         @param item: The student item
         """
         cnt_passes, email, student_code, running_time, msg = item
-        msg = msg.replace("PASS", "P").replace("FAIL", "F")
+        msg = msg.replace('PASS', 'P').replace('FAIL', 'F')
 
-        if msg.find("@") != -1:
-            msg = msg[:msg.find("@")]
+        if msg.find('@') != -1:
+            msg = msg[:msg.find('@')]
 
         print(f'Student {(i+1): 3d}/{self.total_students: 3d}\
               scored: {cnt_passes:4d} | {student_info[0]:<20} | {student_info[1]} |\
@@ -236,7 +236,7 @@ class Grader():
         for _item in data:
             cnt_passes, email, student_code, running_time, msg = _item
             self.println(i, student_info, _item)
-            msg = msg.replace("PASS", "P").replace("FAIL", "F")
+            msg = msg.replace('PASS', 'P').replace('FAIL', 'F')
             grades_file.write(f'{student_info[0]:<20}, {student_info[1]}, \
                               {email:<25}, {student_code:<8}, {cnt_passes:4d}, \
                               {running_time: 6.2f} sec, {msg:<25}\n')
