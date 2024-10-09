@@ -6,6 +6,10 @@ A python code to grade the homework on canvas.
 
 MATLAB and Python are installed.
 
+```bash
+pip install -r requirements.txt
+```
+
 ## Usage
 
 - Clone this project and ``cd`` to the repo folder.
