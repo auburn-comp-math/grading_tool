@@ -7,19 +7,39 @@ import os
 import re
 import zipfile
 import subprocess
+import psutil
 import pandas as pd
 from bs4 import BeautifulSoup
 
-def execute_system_call(command):
+
+def kill(proc_pid):
+    """
+    kill the process with the given PID
+    """
+    process = psutil.Process(proc_pid)
+    process.kill()
+
+def execute_system_call(command, max_wait=30):
     """
     Execute a system call and return the output
     """
+    process = subprocess.Popen(command,
+                    stdout = subprocess.PIPE,
+                    stderr = subprocess.PIPE,
+                    text = True,
+                    shell = False
+                    )
     try:
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
-        return result.stdout
-    except subprocess.CalledProcessError:
-        # The code encounters a runtime error (due to implementation error).
-        return "FAIL"
+        std_out, std_err = process.communicate(timeout=max_wait)
+        output = " ".join(re.findall('PASS|FAIL', std_out.strip()))
+        if std_err:
+            output += "  {{Implementation Error}}@[" + std_err.strip().replace("\n","") + "]"
+        return output
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as e:
+        if isinstance(e, subprocess.TimeoutExpired):
+            kill(process.pid)
+            return "  {{TimeOut Error}}"
+        return "  {{RunTime Error}}"
 
 def find_emails(text):
     """
