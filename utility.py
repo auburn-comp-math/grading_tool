@@ -31,7 +31,6 @@ def execute_system_call(command, max_wait=30):
                     text = True,
                     shell = False
                     )
-    print(process.pid)
     try:
         std_out, std_err = process.communicate(timeout=max_wait)
         output = " ".join(re.findall('PASS|FAIL', std_out.strip()))
