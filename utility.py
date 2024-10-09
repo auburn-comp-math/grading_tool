@@ -33,7 +33,7 @@ def execute_system_call(command, max_wait=30):
         std_out, std_err = process.communicate(timeout=max_wait)
         output = " ".join(re.findall('PASS|FAIL', std_out.strip()))
         if std_err:
-            output += "  {{Implementation Error}}@[" + std_err.strip().replace("\n","") + "]"
+            output += "  {{Implementation Error}}@[" + std_err.strip().replace("\n","").replace(",", "") + "]"
         return output
     except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as e:
         if isinstance(e, subprocess.TimeoutExpired):
