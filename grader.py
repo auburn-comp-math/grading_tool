@@ -237,8 +237,8 @@ class Grader():
             cnt_passes, email, student_code, running_time, msg = _item
             self.println(i, student_info, _item)
             msg = msg.replace('PASS', 'P').replace('FAIL', 'F')
-            grades_file.write(f'{student_info[0]:<20}, {student_info[1]},' \
-                              f'{email:<25}, {student_code:<8}, {cnt_passes:4d},' \
+            grades_file.write(f'{student_info[0]:<20}, {student_info[1]}, ' \
+                              f'{email:<25}, {student_code:<8}, {cnt_passes:4d}, ' \
                               f'{running_time: 6.2f} sec, {msg:<25}\n')
 
     def grade(self, hw_str='hw00', output_file='grades.csv'):
