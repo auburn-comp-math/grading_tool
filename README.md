@@ -16,6 +16,7 @@ pip install -r requirements.txt
 - Download the submissions (one zip file) from canvas to the same folder.
 - Prepare the test files in a directory, say ``/tests``, see the example tests for a reference.
 - Run the python file ``main.py``.
+- After grading, run the python file ``similarity_check`` to check the similarity between students' submissions. It will create webpages.
 
 ## Output
 
