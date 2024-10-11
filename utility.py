@@ -10,7 +10,9 @@ import subprocess
 import psutil
 import pandas as pd
 from bs4 import BeautifulSoup
-
+from sklearn.feature_extraction.text import TfidfVectorizer
+from pyvis.network import Network
+import networkx as nx
 
 def kill(proc_pid):
     """
@@ -99,4 +101,61 @@ def remove_duplicates(csv_file):
 
     # Write the updated data to the CSV file
     data_frame.to_csv(csv_file, index=False)
-    
+
+
+def detect_similarity(submission_dir, hw_str, threshold):
+    """
+    check the similarity between files under a directory.
+    """
+
+    matlab_documents = []
+    matlab_users = []
+
+    python_documents = []
+    python_users = []
+
+    for student_dir in os.listdir(submission_dir):
+        if os.path.isdir(os.path.join(submission_dir, student_dir)):
+            if os.path.exists(os.path.join(submission_dir, student_dir, hw_str + '.m')):
+                with open(os.path.join(submission_dir, student_dir, hw_str + '.m'),
+                          'r', encoding='utf-8') as file:
+                    matlab_documents.append( file.read() )
+                    matlab_users.append(student_dir)
+            if  os.path.exists(os.path.join(submission_dir, student_dir, hw_str + '.py')):
+                with open(os.path.join(submission_dir, student_dir, hw_str + '.py'),
+                          'r', encoding='utf-8') as file:
+                    python_documents.append( file.read() )
+                    python_users.append(student_dir)
+
+    network = Network('1200px', '1200px')
+
+    g_matlab = check_similarity(matlab_documents, matlab_users, threshold)
+    nx.draw(g_matlab, with_labels = True)
+    network.from_nx(g_matlab)
+    network.show('matlab.html', notebook=False)
+
+    g_python = check_similarity(python_documents, python_users, threshold)
+    nx.draw(g_python, with_labels = True)
+    network.from_nx(g_python)
+    network.show('python.html', notebook=False)
+
+
+def check_similarity(documents, users, threshold):
+    """
+    check the similarity between documents.
+    """
+
+    tfidf = TfidfVectorizer().fit_transform(documents)
+
+    pairwise_similarity = tfidf * tfidf.T
+
+    graph_similarity = nx.Graph()
+
+    for i, user_i in enumerate(users):
+        for j, user_j in enumerate(users):
+            if i > j and pairwise_similarity[i, j] > threshold:
+                graph_similarity.add_edge(user_i.split('_')[0],
+                                          user_j.split('_')[0],
+                                          title=str(pairwise_similarity[i, j]))
+
+    return graph_similarity
