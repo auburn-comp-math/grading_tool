@@ -134,6 +134,9 @@ def detect_similarity(submission_dir, hw_str, threshold):
     network.from_nx(g_matlab)
     network.show('matlab.html', notebook=False)
 
+
+    network = Network('1200px', '1200px')
+
     g_python = check_similarity(python_documents, python_users, threshold)
     nx.draw(g_python, with_labels = True)
     network.from_nx(g_python)
