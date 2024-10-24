@@ -154,8 +154,12 @@ class Grader():
 
             elif _file.endswith('.ipynb'):
                 student_code = 'jupyter'
-                shutil.copy(os.path.join(student_dir, _file), \
-                        os.path.join(student_dir, hw_str+'.ipynb'))
+                try:
+                    shutil.copy(os.path.join(student_dir, _file), \
+                            os.path.join(student_dir, hw_str+'.ipynb'))
+                except shutil.SameFileError:
+                    pass
+
                 self.convert_to_python(student_dir, hw_str)
                 cnt_passes, email, msg = self.python_grade(student_dir, hw_str)
 
